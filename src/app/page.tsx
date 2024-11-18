@@ -1,60 +1,34 @@
-import { GetServerSideProps } from 'next';
-import nodemailer from 'nodemailer';
+// /src/app/page.tsx
 
-interface Props {
-  emailStatus: string;
-}
+'use client'; // Add this to mark this component as a Client Component
 
-const Home = ({ emailStatus }: Props) => {
+import { useState } from 'react';
+
+export default function Page() {
+  const [status, setStatus] = useState('');
+
+  const handleSendEmail = async () => {
+    try {
+      const response = await fetch('/api/sendemail', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        setStatus('Email sent successfully!');
+      } else {
+        setStatus('Error sending email.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setStatus('Error sending email.');
+    }
+  };
+
   return (
     <div>
       <h1>Test Email from Nodemailer</h1>
-      <p>{emailStatus}</p>
+      <button onClick={handleSendEmail}>Send Test Email</button>
+      <p>{status}</p>
     </div>
   );
-};
-
-// Send the email from the server-side using Nodemailer
-export const getServerSideProps: GetServerSideProps = async () => {
-  try {
-    // Set up Nodemailer transport using Gmail SMTP
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // Use STARTTLS (not SSL)
-      auth: {
-        user: process.env.GMAIL_USER, // Your Gmail address
-        pass: process.env.GMAIL_PASS, // Your Gmail App Password
-      },
-    });
-
-    // Define email content (text only)
-    const mailOptions = {
-      from: process.env.GMAIL_USER, // Sender's email address
-      to: 'recipient@example.com', // Replace with the recipient email address
-      subject: 'Test Email from Nodemailer',
-      text: 'This is a test email sent using Nodemailer and Gmail SMTP.',
-    };
-
-    // Send the email
-    await transporter.sendMail(mailOptions);
-
-    // Return success message
-    return {
-      props: {
-        emailStatus: 'Email sent successfully!',
-      },
-    };
-  } catch (error) {
-    console.error('Error sending email:', error);
-
-    // Return error message
-    return {
-      props: {
-        emailStatus: 'Error sending email.',
-      },
-    };
-  }
-};
-
-export default Home;
+}
